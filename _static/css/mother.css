@@ -674,3 +674,16 @@ a.btn.disabled,fieldset:disabled a.btn {
 .row-nguyenduyhung button.call:active {
     box-shadow: 0px 2px 0px 0px #237836;
 }
+.row-nguyenduyhung button {
+  position: relative; /* để vách ngăn định vị theo button */
+}
+
+.row-nguyenduyhung button i::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;   /* trải full chiều cao nút */
+  right: 0px; /* vị trí vách ngăn, chỉnh khoảng cách */
+  width: 1px;
+  background: rgba(255,255,255,0.5);
+}
