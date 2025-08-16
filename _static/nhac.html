@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trình phát nhạc ngẫu nhiên</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Toast hỏi cho phép phát nhạc -->
+  <div id="toast-prompt" class="toast-modal">
+    <div class="toast-icon">
+      <img src="https://i.imgur.com/aGMqekz.gif" alt="icon">
+    </div>
+    <div class="toast-question">
+      🎧 Bạn có muốn cho phép vừa nghe nhạc vừa lướt trang web không?
+    </div>
+    <button class="toast-decline">Không hẹn lại lần sau</button>
+    <button class="toast-accept">Cho phép luôn</button>
+  </div>
+
+  <!-- Thông báo phát nhạc -->
+  <div id="popupNotification" class="popup gradient-border">
+    <div class="popup-inner"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
