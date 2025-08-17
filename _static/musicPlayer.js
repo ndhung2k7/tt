@@ -211,3 +211,50 @@
     toast.remove();
   });
 })();
+// Thêm CSS fix popup toast
+const style = document.createElement("style");
+style.innerHTML = `
+.toast {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    background: #1e1e1e !important;
+    color: #fff !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    max-width: 90% !important;
+    width: 400px !important;
+    z-index: 99999 !important;
+    text-align: center !important;
+}
+.toast-buttons {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-top: 12px !important;
+    width: 100% !important;
+}
+.toast-buttons button {
+    width: 100% !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: block !important;
+    text-align: center !important;
+}
+@media (max-width: 480px) {
+  .toast {
+    width: 95% !important;
+    font-size: 14px !important;
+  }
+  .toast-buttons button {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+}
+`;
+document.head.appendChild(style);
