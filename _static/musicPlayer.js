@@ -1,5 +1,5 @@
 (function () {
-  // ================== CSS ==================
+  // ================== TẠO CSS ==================
   const style = document.createElement("style");
   style.textContent = `
     @property --border-angle-1 { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
@@ -74,19 +74,7 @@
       color: var(--foreground);
       font-size: 16px;
       font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .popup-inner button {
-      margin-left: auto;
-      padding: 4px 10px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      background: #dc3545;
-      color: white;
-      cursor: pointer;
+      white-space: nowrap;
     }
 
     .toast {
@@ -139,10 +127,21 @@
         font-size: 18px;
         border-radius: 20px;
       }
-      .toast span { white-space: normal; margin-bottom: 20px; }
-      .toast-buttons { flex-direction: column; width: 100%; gap: 12px; }
+      .toast span { 
+        white-space: normal; 
+        margin-bottom: 20px; 
+      }
+      /* Giữ 2 nút nằm ngang, không đè lên nhau */
+      .toast-buttons { 
+        flex-direction: row; 
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%; 
+        gap: 12px; 
+      }
       .toast-buttons button {
-        width: 100%;
+        flex: 1;
+        min-width: 120px;
         height: 48px;
         padding: 0 16px;
         border-radius: 12px;
@@ -151,7 +150,7 @@
   `;
   document.head.appendChild(style);
 
-  // ================== HTML ==================
+  // ================== TẠO HTML ==================
   const popup = document.createElement("div");
   popup.id = "popupNotification";
   popup.className = "popup gradient-border";
@@ -184,8 +183,9 @@
   let availableSongs = [...songs];
 
   function playRandomSong() {
-    if (availableSongs.length === 0) availableSongs = [...songs];
-
+    if (availableSongs.length === 0) {
+      availableSongs = [...songs];
+    }
     const randomIndex = Math.floor(Math.random() * availableSongs.length);
     const song = availableSongs.splice(randomIndex, 1)[0];
 
@@ -199,32 +199,26 @@
 
     // Popup thông báo
     const popupInner = popup.querySelector(".popup-inner");
-    popupInner.innerHTML = `🎵 Đang phát: ${song.name} <button id="stopMusic">⏹ Tắt</button>`;
+    popupInner.textContent = "🎵 Đang phát: " + song.name;
     popup.classList.add("show");
     setTimeout(() => {
       popup.classList.add("hide");
       setTimeout(() => popup.classList.remove("show", "hide"), 500);
     }, 3000);
 
-    // Khi nhấn nút tắt
-    popupInner.querySelector("#stopMusic").onclick = () => {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
-      popup.classList.remove("show");
-    };
-
     currentAudio.addEventListener("ended", playRandomSong);
     currentAudio.addEventListener("error", playRandomSong);
   }
 
   // Xử lý toast hỏi người dùng
-  toast.querySelector(".confirm-btn").addEventListener("click", () => {
+  const confirmBtn = toast.querySelector(".confirm-btn");
+  const closeBtn = toast.querySelector(".close-btn");
+
+  confirmBtn.addEventListener("click", () => {
     toast.remove();
     playRandomSong();
   });
-  toast.querySelector(".close-btn").addEventListener("click", () => {
+  closeBtn.addEventListener("click", () => {
     toast.remove();
   });
 })();
