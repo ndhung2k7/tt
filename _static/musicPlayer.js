@@ -2,21 +2,9 @@
   // ================== TẠO CSS ==================
   const style = document.createElement("style");
   style.textContent = `
-    @property --border-angle-1 {
-      syntax: "<angle>";
-      inherits: true;
-      initial-value: 0deg;
-    }
-    @property --border-angle-2 {
-      syntax: "<angle>";
-      inherits: true;
-      initial-value: 90deg;
-    }
-    @property --border-angle-3 {
-      syntax: "<angle>";
-      inherits: true;
-      initial-value: 180deg;
-    }
+    @property --border-angle-1 { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+    @property --border-angle-2 { syntax: "<angle>"; inherits: true; initial-value: 90deg; }
+    @property --border-angle-3 { syntax: "<angle>"; inherits: true; initial-value: 180deg; }
 
     :root {
       --bright-blue: rgb(0, 100, 255);
@@ -106,18 +94,24 @@
     }
     .toast span {
       flex: 1;
-      white-space: nowrap;
+      white-space: normal;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .toast-buttons { display: flex; gap: 12px; margin-top: 12px; }
+    .toast-buttons { display: flex; gap: 12px; align-items: center; margin: 0; }
     .toast button {
-      padding: 10px 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 16px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
       font-size: 16px;
+      white-space: nowrap;
+      line-height: 1;
     }
     .toast .close-btn { background-color: transparent; color: #bbb; }
     .toast .confirm-btn { background-color: #0d6efd; color: white; }
@@ -134,28 +128,13 @@
         border-radius: 20px;
       }
       .toast span { white-space: normal; margin-bottom: 20px; }
-      .toast-buttons { flex-direction: column; width: 100%; }
+      .toast-buttons { flex-direction: column; width: 100%; gap: 12px; }
       .toast-buttons button {
         width: 100%;
-        padding: 14px;
-        font-size: 16px;
+        height: 48px;
+        padding: 0 16px;
         border-radius: 12px;
       }
-    }
-
-    #togglePlay {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      z-index: 2000;
-      padding: 12px 16px;
-      border-radius: 50%;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      background: #0d6efd;
-      color: white;
-      display: none;
     }
   `;
   document.head.appendChild(style);
@@ -179,11 +158,6 @@
     </div>
   `;
   document.body.appendChild(toast);
-
-  const toggleBtn = document.createElement("button");
-  toggleBtn.id = "togglePlay";
-  toggleBtn.textContent = "⏸️";
-  document.body.appendChild(toggleBtn);
 
   // ================== JS CHÍNH ==================
   const songs = [
@@ -223,39 +197,17 @@
 
     currentAudio.addEventListener("ended", playRandomSong);
     currentAudio.addEventListener("error", playRandomSong);
-
-    toggleBtn.style.display = "block";
-    toggleBtn.textContent = "⏸️";
   }
-
-  // Nút play/pause
-  toggleBtn.addEventListener("click", () => {
-    if (currentAudio) {
-      if (currentAudio.paused) {
-        currentAudio.play();
-        toggleBtn.textContent = "⏸️";
-      } else {
-        currentAudio.pause();
-        toggleBtn.textContent = "▶️";
-      }
-    }
-  });
 
   // Xử lý toast hỏi người dùng
   const confirmBtn = toast.querySelector(".confirm-btn");
   const closeBtn = toast.querySelector(".close-btn");
 
-  if (localStorage.getItem("musicAllowed") === "true") {
+  confirmBtn.addEventListener("click", () => {
     toast.remove();
     playRandomSong();
-  } else {
-    confirmBtn.addEventListener("click", () => {
-      localStorage.setItem("musicAllowed", "true");
-      toast.remove();
-      playRandomSong();
-    });
-    closeBtn.addEventListener("click", () => {
-      toast.remove();
-    });
-  }
+  });
+  closeBtn.addEventListener("click", () => {
+    toast.remove();
+  });
 })();
