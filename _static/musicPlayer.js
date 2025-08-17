@@ -24,15 +24,15 @@
       position: fixed;
       top: 20px;
       left: 50%;
-      transform: translateX(-50%) scale(0.5);
+      transform: scale(0.5);
       z-index: 1000;
       opacity: 0;
       transition: transform 0.5s ease, opacity 0.5s ease;
       pointer-events: none;
       transform-origin: center center;
     }
-    .popup.show { transform: translateX(-50%) scale(1); opacity: 1; }
-    .popup.hide { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    .popup.show { transform: scale(1); opacity: 1; }
+    .popup.hide { transform: scale(0.5); opacity: 0; }
 
     .popup.gradient-border {
       --border-angle-1: 0deg;
@@ -98,25 +98,24 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-  .toast-buttons {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  gap: 12px;
-  width: 100%;
-}
-
-.toast-buttons button {
-  flex: 1;                  /* Chia đều khoảng trống */
-  min-width: 0;             /* Cho phép co nhỏ */
-  height: 48px;
-  padding: 0 10px;
-  border-radius: 12px;
-  font-size: 15px;
-  line-height: 1.2;
-  white-space: normal;       /* Cho phép chữ xuống dòng */
-  word-break: break-word;    /* Xuống dòng nếu chữ quá dài */
-}
+    .toast-buttons { display: flex; gap: 12px; align-items: center; margin: 0; }
+    .toast button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .toast .close-btn { background-color: transparent; color: #bbb; }
+    .toast .confirm-btn { background-color: #0d6efd; color: white; }
+    .toast img { width: 40px; height: 40px; }
 
     @media (max-width: 767px) {
       .toast {
@@ -128,21 +127,10 @@
         font-size: 18px;
         border-radius: 20px;
       }
-      .toast span { 
-        white-space: normal; 
-        margin-bottom: 20px; 
-      }
-      /* Giữ 2 nút nằm ngang, không đè lên nhau */
-      .toast-buttons { 
-        flex-direction: row; 
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%; 
-        gap: 12px; 
-      }
+      .toast span { white-space: normal; margin-bottom: 20px; }
+      .toast-buttons { flex-direction: column; width: 100%; gap: 12px; }
       .toast-buttons button {
-        flex: 1;
-        min-width: 120px;
+        width: 100%;
         height: 48px;
         padding: 0 16px;
         border-radius: 12px;
