@@ -98,24 +98,25 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .toast-buttons { display: flex; gap: 12px; align-items: center; margin: 0; }
-    .toast button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 40px;
-      padding: 0 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 16px;
-      white-space: nowrap;
-      line-height: 1;
-    }
-    .toast .close-btn { background-color: transparent; color: #bbb; }
-    .toast .confirm-btn { background-color: #0d6efd; color: white; }
-    .toast img { width: 40px; height: 40px; }
+  .toast-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+.toast-buttons button {
+  flex: 1;                  /* Chia đều khoảng trống */
+  min-width: 0;             /* Cho phép co nhỏ */
+  height: 48px;
+  padding: 0 10px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.2;
+  white-space: normal;       /* Cho phép chữ xuống dòng */
+  word-break: break-word;    /* Xuống dòng nếu chữ quá dài */
+}
 
     @media (max-width: 767px) {
       .toast {
