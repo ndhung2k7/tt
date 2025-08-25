@@ -113,7 +113,7 @@
       white-space: nowrap;
       line-height: 1;
     }
-    .toast .close-btn { background-color: transparent; color: #bbb; }
+    .toast .toast-close-btn { background-color: transparent; color: #bbb; }
     .toast .confirm-btn { background-color: #0d6efd; color: white; }
     .toast img { width: 40px; height: 40px; }
 
@@ -153,7 +153,7 @@
     <img src="https://i.imgur.com/aGMqekz.gif">
     <span>Bạn có muốn cho phép vừa nghe nhạc vừa lướt trang web không?</span>
     <div class="toast-buttons">
-      <button class="close-btn">Không hẹn lại lần sau</button>
+      <button class="toast-close-btn">Không hẹn lại lần sau</button>
       <button class="confirm-btn">Cho phép luôn</button>
     </div>
   `;
@@ -201,7 +201,7 @@
 
   // Xử lý toast hỏi người dùng
   const confirmBtn = toast.querySelector(".confirm-btn");
-  const closeBtn = toast.querySelector(".close-btn");
+  const closeBtn = toast.querySelector(".toast-close-btn");
 
   confirmBtn.addEventListener("click", () => {
     toast.remove();
