@@ -24,15 +24,21 @@
       position: fixed;
       top: 20px;
       left: 50%;
-      transform: scale(0.5);
+      transform: translateX(-50%) translateY(-30px);
       z-index: 1000;
       opacity: 0;
       transition: transform 0.5s ease, opacity 0.5s ease;
       pointer-events: none;
-      transform-origin: center center;
+      max-width: 90%;
     }
-    .popup.show { transform: scale(1); opacity: 1; }
-    .popup.hide { transform: scale(0.5); opacity: 0; }
+    .popup.show { 
+      transform: translateX(-50%) translateY(0);
+      opacity: 1; 
+    }
+    .popup.hide { 
+      transform: translateX(-50%) translateY(-30px);
+      opacity: 0; 
+    }
 
     .popup.gradient-border {
       --border-angle-1: 0deg;
@@ -74,6 +80,7 @@
       color: var(--foreground);
       font-size: 16px;
       font-weight: bold;
+      text-align: center;
       white-space: nowrap;
     }
 
@@ -193,7 +200,7 @@
     setTimeout(() => {
       popup.classList.add("hide");
       setTimeout(() => popup.classList.remove("show", "hide"), 500);
-    }, 3000);
+    }, 4000);
 
     currentAudio.addEventListener("ended", playRandomSong);
     currentAudio.addEventListener("error", playRandomSong);
