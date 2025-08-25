@@ -117,30 +117,25 @@
     .toast .confirm-btn { background-color: #0d6efd; color: white; }
     .toast img { width: 40px; height: 40px; }
 
-  @media (max-width: 767px) {
-  .toast {
-    flex-direction: column;
-    text-align: center;
-    max-width: 90%;
-    width: 90%;
-    padding: 24px;
-    font-size: 18px;
-    border-radius: 20px;
-  }
-  .toast span { white-space: normal; margin-bottom: 20px; }
-  .toast-buttons { 
-      flex-direction: row; 
-      justify-content: center; /* Thêm dòng này để các nút căn giữa */
-      width: 100%; 
-      gap: 12px; 
+    @media (max-width: 767px) {
+      .toast {
+        flex-direction: column;
+        text-align: center;
+        max-width: 90%;
+        width: 90%;
+        padding: 24px;
+        font-size: 18px;
+        border-radius: 20px;
+      }
+      .toast span { white-space: normal; margin-bottom: 20px; }
+      .toast-buttons { flex-direction: column; width: 100%; gap: 12px; }
+      .toast-buttons button {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px;
+        border-radius: 12px;
+      }
     }
-  .toast-buttons button {
-    width: 100%;
-    height: 48px;
-    padding: 0 16px;
-    border-radius: 12px;
-  }
-}
   `;
   document.head.appendChild(style);
 
