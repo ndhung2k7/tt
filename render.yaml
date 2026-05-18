@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: video-splitter-api
+    runtime: python
+    repo: https://github.com/YOUR_USERNAME/video-splitter-api
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
