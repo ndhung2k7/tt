@@ -4,9 +4,10 @@ import shutil
 import math
 import zipfile
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse   # <-- THÊM HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 import ffmpeg
@@ -14,31 +15,53 @@ import imageio_ffmpeg
 
 app = FastAPI(title="Video Splitter", version="1.0.0")
 
-# Đường dẫn ffmpeg/ffprobe từ imageio (có sẵn binary)
-FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
-FFPROBE_PATH = imageio_ffmpeg.get_ffprobe_exe()
+# Templates
+templates = Jinja2Templates(directory="templates")
 
 # Thư mục lưu file tạm
 TEMP_DIR = Path("temp")
 TEMP_DIR.mkdir(exist_ok=True)
 
-# Templates
-templates = Jinja2Templates(directory="templates")
-
 # Giới hạn upload (1GB)
 MAX_UPLOAD_SIZE = 1_000_000_000
+
+# Biến toàn cục để lưu đường dẫn ffmpeg (sẽ khởi tạo khi cần)
+_FFMPEG_PATH: Optional[str] = None
+_FFPROBE_PATH: Optional[str] = None
+
+def _init_ffmpeg():
+    """Khởi tạo đường dẫn ffmpeg/ffprobe một cách an toàn, trả về (ffmpeg_path, ffprobe_path)."""
+    global _FFMPEG_PATH, _FFPROBE_PATH
+    if _FFMPEG_PATH is not None and _FFPROBE_PATH is not None:
+        return _FFMPEG_PATH, _FFPROBE_PATH
+
+    try:
+        _FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+        _FFPROBE_PATH = imageio_ffmpeg.get_ffprobe_exe()
+        # Kiểm tra nhanh xem binary có chạy được không
+        import subprocess
+        subprocess.run([_FFMPEG_PATH, "-version"], capture_output=True, timeout=10)
+        subprocess.run([_FFPROBE_PATH, "-version"], capture_output=True, timeout=10)
+        print(f"FFmpeg path: {_FFMPEG_PATH}")
+        return _FFMPEG_PATH, _FFPROBE_PATH
+    except Exception as e:
+        raise RuntimeError(f"Không thể khởi tạo FFmpeg từ imageio-ffmpeg: {e}. "
+                           "Hãy kiểm tra kết nối mạng hoặc cấu hình lại server.")
 
 
 def get_video_duration(input_path: str) -> float:
     try:
-        probe = ffmpeg.probe(input_path, cmd=FFPROBE_PATH)
+        ffprobe_cmd = _init_ffmpeg()[1]
+        probe = ffmpeg.probe(input_path, cmd=ffprobe_cmd)
         return float(probe['format']['duration'])
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Không thể đọc video: {str(e)}")
 
 
 def split_video(input_path: str, output_dir: str, mode: str, value: float):
-    duration = get_video_duration(input_path)
+    ffmpeg_cmd, ffprobe_cmd = _init_ffmpeg()
+    duration = get_video_duration(input_path)  # đã gọi init
+
     if duration <= 0:
         raise HTTPException(status_code=400, detail="Video không có thời lượng hợp lệ.")
 
@@ -64,7 +87,7 @@ def split_video(input_path: str, output_dir: str, mode: str, value: float):
             if end > start:
                 segments.append((start, end))
     else:
-        raise HTTPException(status_code=400, detail="Chế độ không hợp lệ ('duration' hoặc 'count').")
+        raise HTTPException(status_code=400, detail="Chế độ không hợp lệ (chỉ 'duration' hoặc 'count').")
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     part_files = []
@@ -75,7 +98,7 @@ def split_video(input_path: str, output_dir: str, mode: str, value: float):
                 ffmpeg
                 .input(input_path, ss=start)
                 .output(output_file, to=end, c='copy', map=0, avoid_negative_ts='make_zero')
-                .run(cmd=FFMPEG_PATH, overwrite_output=True)
+                .run(cmd=ffmpeg_cmd, overwrite_output=True)
             )
             part_files.append(output_file)
         except ffmpeg.Error:
@@ -85,7 +108,7 @@ def split_video(input_path: str, output_dir: str, mode: str, value: float):
                     ffmpeg
                     .input(input_path, ss=start)
                     .output(output_file, to=end, vcodec='libx264', acodec='aac', avoid_negative_ts='make_zero')
-                    .run(cmd=FFMPEG_PATH, overwrite_output=True)
+                    .run(cmd=ffmpeg_cmd, overwrite_output=True)
                 )
                 part_files.append(output_file)
             except Exception as e2:
@@ -102,7 +125,7 @@ def create_zip(source_dir: str, zip_path: str):
                 zf.write(full_path, arcname)
 
 
-@app.get("/", response_class=HTMLResponse)  # Bây giờ đã có import
+@app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
@@ -158,11 +181,24 @@ async def upload_and_split(
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise HTTPException(status_code=500, detail="Không tạo được file zip.")
 
+    # Dọn dẹp thư mục tạm sau khi gửi file zip
     background_tasks.add_task(shutil.rmtree, str(temp_dir), ignore_errors=True)
 
+    # Trả về file (KHÔNG truyền background=background_tasks)
     return FileResponse(
         path=str(zip_file_path),
         filename="split_videos.zip",
-        media_type="application/zip",
-        background=background_tasks
+        media_type="application/zip"
     )
+
+
+# Bắt sự kiện khởi động để kiểm tra ffmpeg trước (tùy chọn)
+@app.on_event("startup")
+async def startup_event():
+    try:
+        _init_ffmpeg()
+        print("FFmpeg/FFprobe sẵn sàng.")
+    except Exception as e:
+        print(f"CẢNH BÁO: {e}")
+        # Không raise để app vẫn chạy, nhưng sẽ lỗi khi cắt video
+        pass
