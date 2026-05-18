@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cắt Video Online - Công cụ miễn phí</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+        .upload-area.dragover {
+            background: #e0e4ff;
+            border-color: #764ba2;
+        }
+        #fileInput {
+            display: none;
+        }
+        .file-info {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+        .mode-option {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .mode-option input {
+            margin-right: 5px;
+        }
+        .value-input {
+            margin-bottom: 20px;
+        }
+        .value-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .value-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+        .message.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        .message.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✂️ Công cụ cắt video thông minh</h1>
+        <p class="subtitle">Tải video lên, chọn chế độ, và tải về file zip</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div>📁 Kéo thả video vào đây hoặc click để chọn</div>
+            <div style="font-size: 12px; margin-top: 10px;">Hỗ trợ: MP4, AVI, MKV, MOV, FLV, WMV</div>
+            <input type="file" id="fileInput" accept=".mp4,.avi,.mkv,.mov,.flv,.wmv">
+        </div>
+        
+        <div class="file-info" id="fileInfo"></div>
+        
+        <div class="mode-selector">
+            <label class="mode-option">
+                <input type="radio" name="splitMode" value="duration" checked> Cắt theo thời lượng (phút)
+            </label>
+            <label class="mode-option">
+                <input type="radio" name="splitMode" value="count"> Cắt theo số lượng
+            </label>
+        </div>
+        
+        <div class="value-input" id="valueInput">
+            <label id="valueLabel">Thời lượng mỗi đoạn (phút):</label>
+            <input type="number" id="value" step="1" min="1" placeholder="Nhập số...">
+        </div>
+        
+        <button id="submitBtn">✂️ Cắt video ngay</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Đang xử lý video... Vui lòng chờ (có thể mất vài phút)</div>
+        </div>
+        
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const messageDiv = document.getElementById('message');
+        const splitModeRadios = document.querySelectorAll('input[name="splitMode"]');
+        const valueInput = document.getElementById('value');
+        const valueLabel = document.getElementById('valueLabel');
+        
+        // Xử lý kéo thả
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+        
+        function handleFile(file) {
+            const allowedTypes = ['.mp4', '.avi', '.mkv', '.mov', '.flv', '.wmv'];
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+            if (!allowedTypes.includes(ext)) {
+                showMessage('Định dạng file không được hỗ trợ!', 'error');
+                return;
+            }
+            selectedFile = file;
+            fileInfo.style.display = 'block';
+            fileInfo.innerHTML = `✅ Đã chọn: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            showMessage('', '');
+        }
+        
+        // Thay đổi label khi chọn chế độ
+        splitModeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (document.querySelector('input[name="splitMode"]:checked').value === 'duration') {
+                    valueLabel.textContent = 'Thời lượng mỗi đoạn (phút):';
+                    valueInput.placeholder = 'Nhập số phút (vd: 10)';
+                } else {
+                    valueLabel.textContent = 'Số lượng đoạn cần cắt:';
+                    valueInput.placeholder = 'Nhập số lượng (vd: 5)';
+                }
+            });
+        });
+        
+        submitBtn.addEventListener('click', async () => {
+            if (!selectedFile) {
+                showMessage('Vui lòng chọn video trước!', 'error');
+                return;
+            }
+            
+            const splitMode = document.querySelector('input[name="splitMode"]:checked').value;
+            let value = parseFloat(valueInput.value);
+            
+            if (!value || value <= 0) {
+                showMessage('Vui lòng nhập giá trị hợp lệ!', 'error');
+                return;
+            }
+            
+            if (splitMode === 'count' && !Number.isInteger(value)) {
+                showMessage('Số lượng phải là số nguyên!', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('split_mode', splitMode);
+            formData.append('value', value);
+            
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            showMessage('Đang xử lý, vui lòng chờ...', 'success');
+            
+            try {
+                const response = await fetch('/split-video', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `split_video_${Date.now()}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    showMessage('✅ Cắt video thành công! File zip đã được tải về.', 'success');
+                    fileInfo.style.display = 'none';
+                    selectedFile = null;
+                    fileInput.value = '';
+                } else {
+                    const error = await response.json();
+                    showMessage('Lỗi: ' + error.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('Lỗi kết nối: ' + error.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function showMessage(msg, type) {
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            if (msg) messageDiv.style.display = 'block';
+            else messageDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
